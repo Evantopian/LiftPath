@@ -37,12 +37,13 @@ struct HomeView: View {
                     HStack {
                         Image(systemName: "flame.fill")
                             .foregroundColor(.orange)
-                        Image(systemName: "person.circle.fill")
-                            .foregroundColor(.blue)
+                        NavigationLink(destination: ProfileView()) {
+                            Image(systemName: "person.circle.fill")
+                                .foregroundColor(.blue)
+                        }
                     }
                 }
             }
-            
             // Tab Bar
             .safeAreaInset(edge: .bottom) {
                 CustomTabBar()
