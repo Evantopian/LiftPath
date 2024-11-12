@@ -11,7 +11,7 @@ struct HomeView: View {
     @StateObject private var viewModel = HomeViewModel()
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
                     // Profile Summary Card
@@ -51,7 +51,6 @@ struct HomeView: View {
         }
     }
 }
-
 // Supporting Views
 struct ProfileSummaryView: View {
     let username: String
@@ -117,21 +116,31 @@ struct WorkoutSectionView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text(title)
-                .font(.title2)
-                .bold()
+            HStack {
+                Text(title)
+                    .font(.title2)
+                    .bold()
+                
+                Spacer()
+                
+                Button("See All") {
+                    // Action for see all
+                }
+                .foregroundColor(LiftPathTheme.primaryGreen)
+            }
             
-            LazyVGrid(columns: [
-                GridItem(.flexible()),
-                GridItem(.flexible())
-            ], spacing: 15) {
-                ForEach(workouts) { workout in
-                    WorkoutCategoryCard(category: workout)
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 15) {
+                    ForEach(workouts) { workout in
+                        WorkoutCategoryCard(category: workout)
+                            .frame(width: 160, height: 160) // Fixed size here instead
+                    }
                 }
             }
         }
     }
 }
+
 
 struct WorkoutCategoryCard: View {
     let category: WorkoutCategory
@@ -154,19 +163,30 @@ struct WorkoutCategoryCard: View {
     }
 }
 
+
 struct CustomTabBar: View {
+    @State private var selectedTab: String? = nil
+    
+    let tabs = [
+        (icon: "dumbbell.fill", title: "Workouts"),
+        (icon: "figure.walk", title: "Progress"),
+        (icon: "heart.circle.fill", title: "Health"),
+        (icon: "chart.bar.fill", title: "Stats")
+    ]
+    
     var body: some View {
         HStack(spacing: 0) {
-            ForEach(["dumbbell.fill", "figure.walk", "heart.circle.fill", "chart.bar.fill"], id: \.self) { icon in
-                Button {
-                    // Tab action
-                } label: {
-                    Image(systemName: icon)
+            ForEach(tabs, id: \.icon) { tab in
+                NavigationLink(value: tab.icon) {
+                    Image(systemName: tab.icon)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 10)
+                        .foregroundColor(selectedTab == tab.icon ? LiftPathTheme.primaryGreen : .black)
                 }
-                .foregroundColor(.black)
             }
+        }
+        .navigationDestination(for: String.self) { icon in
+            TempView(icon: icon, title: tabs.first { $0.icon == icon }?.title ?? "")
         }
         .background(.white)
         .cornerRadius(15)
