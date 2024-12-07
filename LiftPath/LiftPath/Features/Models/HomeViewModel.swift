@@ -11,7 +11,6 @@ import Combine
 class HomeViewModel: ObservableObject {
     @Published var featuredWorkouts: [WorkoutCategory] = []
     @Published var otherWorkouts: [WorkoutCategory] = []
-    @Published var username: String = "TempName"
     @Published var completedWorkouts: Int = 30
     @Published var streakDays: Int = 12
     
@@ -21,21 +20,16 @@ class HomeViewModel: ObservableObject {
     
     private func loadWorkoutCategories() {
         featuredWorkouts = [
-            WorkoutCategory(name: "Dumbbell Workouts",
-                          image: "dumbbell.fill",
-                          description: "Build strength with dumbbells"),
-            WorkoutCategory(name: "Cardio Workouts",
-                          image: "figure.run",
-                          description: "Improve endurance"),
-            WorkoutCategory(name: "HIIT Training",
-                          image: "bolt.fill",
-                          description: "High intensity intervals"),
-            WorkoutCategory(name: "Yoga Flow",
-                          image: "figure.mind.and.body",
-                          description: "Flexibility and balance"),
-            WorkoutCategory(name: "Core Strength",
-                          image: "figure.core.training",
-                          description: "Build core stability")
+            WorkoutCategory(name: "Waist", image: "figure.mind.and.body", description: "Focus on waist and core workouts"),
+            WorkoutCategory(name: "Shoulders", image: "figure.hiking", description: "Develop shoulder stability"),
+            WorkoutCategory(name: "Back", image: "back.circle.fill", description: "Strengthen your back muscles"),
+            WorkoutCategory(name: "Cardio", image: "figure.run", description: "Boost your cardiovascular health"),
+            WorkoutCategory(name: "Chest", image: "figure.pacman", description: "Build chest strength"),
+            WorkoutCategory(name: "Lower Arms", image: "figure.hand.point.up", description: "Target lower arms"),
+            WorkoutCategory(name: "Lower Legs", image: "figure.walk", description: "Strengthen calves and shins"),
+            WorkoutCategory(name: "Neck", image: "figure.head", description: "Neck strengthening exercises"),
+            WorkoutCategory(name: "Upper Arms", image: "figure.arm.front", description: "Build upper arm strength"),
+            WorkoutCategory(name: "Upper Legs", image: "figure.mountain", description: "Strengthen thighs and quads")
         ]
         
         otherWorkouts = [

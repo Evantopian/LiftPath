@@ -9,9 +9,17 @@ import SwiftUI
 
 @main
 struct LiftPathApp: App {
+    @AppStorage("isFirstLaunch") private var isFirstLaunch = true
+    @StateObject private var userData = UserData.shared
+
     var body: some Scene {
         WindowGroup {
-            HomeView()
+            if isFirstLaunch {
+                InitialSetupView()
+            } else {
+                ContentView()
+            }
         }
     }
 }
+

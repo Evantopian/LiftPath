@@ -8,17 +8,23 @@
 import SwiftUI
 
 struct ContentView: View {
-    var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("LiftPath")
-        }
-        .padding()
-    }
-}
+    @State private var selectedTab = "Home"
 
-#Preview {
-    ContentView()
+    var body: some View {
+        VStack(spacing: 0) {
+            switch selectedTab {
+            case "Health":
+                FavoritesView()
+            case "Home":
+                HomeView()
+            case "Stats":
+                StatsView()
+            default:
+                Text("Unknown Tab")
+            }
+
+            BottomNavbar(selectedTab: $selectedTab)
+        }
+        .edgesIgnoringSafeArea(.bottom)
+    }
 }

@@ -8,8 +8,8 @@
 import SwiftUI
 
 struct LiftPathTheme {
-    static let primaryGreen = Color(red: 183/255, green: 223/255, blue: 177/255)
-    static let secondaryGreen = Color(red: 163/255, green: 203/255, blue: 157/255)
+    static let primaryGreen = Color(hex: "#A8DCAB")
+    static let secondaryGreen = Color(hex: "#A8DCAB")
     static let textColor = Color.black
     static let backgroundColor = Color.white
     
@@ -52,3 +52,20 @@ struct WorkoutCategory: Identifiable {
     let image: String
     let description: String
 }
+
+
+extension Color {
+    init(hex: String) {
+        let hex = hex.replacingOccurrences(of: "#", with: "")
+        let scanner = Scanner(string: hex)
+        var hexInt: UInt64 = 0
+        scanner.scanHexInt64(&hexInt)
+        
+        let red = Double((hexInt & 0xFF0000) >> 16) / 255.0
+        let green = Double((hexInt & 0x00FF00) >> 8) / 255.0
+        let blue = Double(hexInt & 0x0000FF) / 255.0
+        
+        self.init(red: red, green: green, blue: blue)
+    }
+}
+

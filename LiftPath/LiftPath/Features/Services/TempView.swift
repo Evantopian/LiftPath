@@ -5,6 +5,7 @@
 //  Created by Evan Huang on 11/11/24.
 //
 
+// not used atm, on hold
 import SwiftUI
 
 struct TempView: View {
@@ -13,6 +14,8 @@ struct TempView: View {
     
     var body: some View {
         VStack {
+            Spacer()
+            
             Image(systemName: icon)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
@@ -22,12 +25,17 @@ struct TempView: View {
             Text(title)
                 .font(.title2)
                 .bold()
+                .padding(.top)
             
             Text("Coming Soon!")
                 .foregroundColor(.gray)
+                .padding(.top, 4)
+            
+            Spacer()
         }
-        .navigationTitle(title)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(LiftPathTheme.primaryGreen.opacity(0.2))
+        .navigationTitle(title)
+        .navigationBarTitleDisplayMode(.inline)
     }
 }

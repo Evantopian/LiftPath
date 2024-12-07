@@ -9,32 +9,58 @@ import SwiftUI
 
 struct ProfileView: View {
     @StateObject private var viewModel = ProfileViewModel()
+    @StateObject private var userData = UserData.shared
+    @State private var showingConfirmation = false
+    @Environment(\.presentationMode) var presentationMode
     
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
                 // Profile Card
                 ProfileCardView(
-                    username: viewModel.username,
-                    rank: viewModel.rank,
+                    username: userData.username,
                     bio: viewModel.bio,
                     stats: viewModel.stats
                 )
                 
                 // Activity Heatmap
                 ActivityHeatmapView(activities: viewModel.activityData)
+                
+                // Clear Data Button
+                Button(action: {
+                    showingConfirmation = true
+                }) {
+                    Text("Clear All User Data")
+                        .foregroundColor(.white)
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.red)
+                        .cornerRadius(10)
+                }
+                .padding(.horizontal)
+                .confirmationDialog("Are you sure?",
+                    isPresented: $showingConfirmation,
+                    titleVisibility: .visible) {
+                    Button("Clear All Data", role: .destructive) {
+                        userData.clearAllUserData()
+                        // Reset to first launch
+                        UserDefaults.standard.set(true, forKey: "isFirstLaunch")
+                        // Dismiss current view and go back to initial setup
+                        presentationMode.wrappedValue.dismiss()
+                    }
+                }
             }
             .padding()
         }
-        .background(LiftPathTheme.primaryGreen.opacity(0.2))
+        .background(LiftPathTheme.primaryGreen)
         .navigationTitle("Profile")
         .navigationBarTitleDisplayMode(.inline)
     }
 }
 
+
 struct ProfileCardView: View {
     let username: String
-    let rank: Int
     let bio: String
     let stats: ProfileStats
     
@@ -51,8 +77,6 @@ struct ProfileCardView: View {
                     Text(username)
                         .font(.title2)
                         .bold()
-                    Text("Rank #\(rank)")
-                        .foregroundColor(.orange)
                     
                     Text(bio)
                         .font(.caption)
@@ -89,25 +113,24 @@ struct ActivityHeatmapView: View {
                 .font(.title2)
                 .bold()
             
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 8) {
                 // Weekday labels
-                HStack(spacing: 4) {
+                HStack(spacing: 8) {
                     ForEach(weekdays, id: \.self) { day in
                         Text(day)
                             .font(.caption2)
-                            .frame(width: 20)
+                            .frame(width: 30)
                     }
                 }
                 
-                // Activity grid
                 ForEach(0..<activities.count, id: \.self) { week in
-                    HStack(spacing: 4) {
+                    HStack(spacing: 8) {
                         ForEach(0..<activities[week].count, id: \.self) { day in
                             RoundedRectangle(cornerRadius: 2)
                                 .fill(activities[week][day] ?
                                       LiftPathTheme.primaryGreen :
                                       Color.gray.opacity(0.2))
-                                .frame(width: 20, height: 20)
+                                .frame(width: 30, height: 20)
                         }
                     }
                 }
@@ -132,35 +155,4 @@ struct StatItemView: View {
                 .foregroundColor(.gray)
         }
     }
-}
-
-// ViewModel
-class ProfileViewModel: ObservableObject {
-    @Published var username: String = "TempName"
-    @Published var rank: Int = 1234
-    @Published var bio: String = "blurb of information. (max 100 characters)?"
-    @Published var stats = ProfileStats(
-        completed: 59,
-        streak: 12,
-        monthlyGoal: 20,
-        totalMinutes: 1240
-    )
-    @Published var activityData: [[Bool]] = []
-    
-    init() {
-        generateActivityData()
-    }
-    
-    private func generateActivityData() {
-        activityData = (0..<12).map { _ in
-            (0..<7).map { _ in Bool.random() }
-        }
-    }
-}
-
-struct ProfileStats {
-    let completed: Int
-    let streak: Int
-    let monthlyGoal: Int
-    let totalMinutes: Int
 }
