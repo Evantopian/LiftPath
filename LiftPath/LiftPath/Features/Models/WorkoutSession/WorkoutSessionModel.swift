@@ -14,12 +14,14 @@ struct WorkoutSession: Codable {
     var duration: TimeInterval // Total duration of the session (can be updated while active)
     var startTime: Date?  // Start time of the session (optional)
     var endTime: Date?  // End time of the session (optional)
+    var isCompleted: Bool // Whether the session is completed
     
     // Initialize with default values
-    init(sessionName: String, workouts: [Exercise] = [], duration: TimeInterval = 0) {
+    init(sessionName: String, workouts: [Exercise] = [], duration: TimeInterval = 0, isCompleted: Bool = false) {
         self.sessionName = sessionName
         self.workouts = workouts
         self.duration = duration
+        self.isCompleted = isCompleted
     }
     
     // Method to add a workout
@@ -28,19 +30,21 @@ struct WorkoutSession: Codable {
     }
     
     // Method to remove a workout
-    mutating func removeWorkout(named name: String) {
-        workouts.removeAll { $0.name == name }
+    mutating func removeWorkout(_ workout: Exercise) {
+        workouts.removeAll { $0.name == workout.name }
     }
     
     // Method to start the session
     mutating func startSession() {
         startTime = Date()
+        isCompleted = false // Reset completion status when a new session starts
     }
     
     // Method to stop the session
     mutating func stopSession() {
         endTime = Date()
         duration = endTime?.timeIntervalSince(startTime ?? Date()) ?? 0
+        isCompleted = true
     }
     
     // Method to reset the session (for a new session)
@@ -49,5 +53,6 @@ struct WorkoutSession: Codable {
         startTime = nil
         endTime = nil
         duration = 0
+        isCompleted = false
     }
 }

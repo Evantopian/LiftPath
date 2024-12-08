@@ -11,51 +11,51 @@ struct HomeView: View {
     @StateObject private var viewModel = HomeViewModel()
     @State private var selectedTab: String = "dumbbell.fill"
     @StateObject private var userData = UserData.shared
-
+    @ObservedObject private var sessionManager = WorkoutSessionManager.shared
+    
     var body: some View {
-        NavigationStack {
-            ZStack {
-                ScrollView {
-                    VStack(spacing: 20) {
-                        // Simply pass the current session directly to ResumeBoxView
-                        ResumeBoxView(
-                            username: userData.username,
-                            workoutTitle: userData.currentSession?.sessionName,
-                            session: userData.currentSession
-                        )
+           NavigationStack {
+               ZStack {
+                   ScrollView {
+                       VStack(spacing: 20) {
+                           // Pass the current session directly from sessionManager
+                           ResumeBoxView(
+                               username: userData.username,
+                               workoutTitle: sessionManager.currentSession?.sessionName,
+                               session: sessionManager.currentSession
+                           )
 
-                        // Featured Section
-                        WorkoutSectionView(title: "Featured", workouts: viewModel.featuredWorkouts)
+                           // Featured Section
+                           WorkoutSectionView(title: "Featured", workouts: viewModel.featuredWorkouts)
 
-                        // Other Workouts Section
-                        WorkoutSectionView(title: "Other", workouts: viewModel.otherWorkouts)
-                    }
-                    .padding()
-                }
-                .background(LiftPathTheme.primaryGreen)
-                .toolbar {
-                    ToolbarItem(placement: .navigationBarLeading) {
-                        Text("LiftPath")
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
-                            .foregroundColor(.white)
-                    }
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                         HStack {
-                             Image(systemName: "flame.fill")
-                                 .foregroundColor(.orange)
-                             NavigationLink(destination: ProfileView()) {
-                                 Image(systemName: "person.circle.fill")
-                                     .foregroundColor(.white)
-                             }
-                         }
-                     }
-                }
-            }
-        }
-    }
-}
-
+                           // Other Workouts Section
+                           WorkoutSectionView(title: "Other", workouts: viewModel.otherWorkouts)
+                       }
+                       .padding()
+                   }
+                   .background(LiftPathTheme.primaryGreen)
+                   .toolbar {
+                       ToolbarItem(placement: .navigationBarLeading) {
+                           Text("LiftPath")
+                               .font(.largeTitle)
+                               .fontWeight(.bold)
+                               .foregroundColor(.white)
+                       }
+                       ToolbarItem(placement: .navigationBarTrailing) {
+                           HStack {
+                               Image(systemName: "flame.fill")
+                                   .foregroundColor(.orange)
+                               NavigationLink(destination: ProfileView()) {
+                                   Image(systemName: "person.circle.fill")
+                                       .foregroundColor(.white)
+                               }
+                           }
+                       }
+                   }
+               }
+           }
+       }
+   }
 
 struct WorkoutSectionView: View {
     let title: String

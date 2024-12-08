@@ -3,11 +3,10 @@
 //  LiftPath
 //
 //  Created by Evan Huang on 12/7/24.
-//
 import SwiftUI
 
 struct WorkoutSessionView: View {
-    @ObservedObject var userData = UserData.shared
+    @ObservedObject private var sessionManager = WorkoutSessionManager.shared
     @State private var isSessionStarted: Bool = false
     @State private var currentSessionDuration: TimeInterval = 0
     @State private var timer: Timer?
@@ -16,8 +15,9 @@ struct WorkoutSessionView: View {
     var session: WorkoutSession?  // This will hold the session passed from the NavigationLink
     
     var body: some View {
+        
         VStack {
-            if let currentSession = session ?? userData.currentSession {
+            if let currentSession = session ?? sessionManager.currentSession {
                 sessionDetailsView(for: currentSession)
             } else {
                 noSessionView()
@@ -26,7 +26,19 @@ struct WorkoutSessionView: View {
         .navigationBarTitle("Workout Session", displayMode: .inline)
         .padding()
         .onAppear {
-            if isSessionStarted {
+            if let currentSession = session ?? sessionManager.currentSession {
+                print("Session Name: \(currentSession.sessionName)")
+                print("Duration: \(formattedDuration(currentSession.duration))")
+                print("Workouts:")
+                for workout in currentSession.workouts {
+                    print("- \(workout.name)")
+                }
+            } else {
+                print("No active session.")
+            }
+            
+            if sessionManager.currentSession != nil {
+                isSessionStarted = true
                 startTimer()
             }
         }
@@ -56,10 +68,36 @@ struct WorkoutSessionView: View {
                     .fontWeight(.semibold)
                 
                 ForEach(session.workouts) { workout in
-                    Text("• \(workout.name)")
-                        .padding(.vertical, 5)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                    HStack {
+                        Text("• \(workout.name)")
+                        Spacer()
+                        Button(action: {
+                            sessionManager.removeExerciseFromCurrentSession(workout)
+                        }) {
+                            Image(systemName: "minus.circle.fill")
+                                .foregroundColor(.red)
+                        }
+                    }
+                    .padding(.vertical, 5)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
+                
+                Spacer()
+                
+                // Complete Session Button
+                Button(action: {
+                    stopTimer()
+                    sessionManager.completeCurrentSession()
+                }) {
+                    Text("Complete Session")
+                        .font(.headline)
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.green)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                }
+                .padding(.top)
             }
             .padding()
         }
@@ -68,12 +106,14 @@ struct WorkoutSessionView: View {
     /// Displays a fallback view when no session is active
     private func noSessionView() -> some View {
         VStack {
-            Text("No Active Session")
+            Text(sessionManager.sessionHistory.isEmpty ? "No Active Session" : "Start Another Session")
                 .font(.title2)
                 .fontWeight(.semibold)
                 .padding(.bottom, 10)
             
-            Text("Start a new session to track your progress.")
+            Text(sessionManager.sessionHistory.isEmpty
+                 ? "Start a new session to track your progress."
+                 : "You have completed previous workout sessions.")
                 .font(.body)
                 .foregroundColor(.secondary)
                 .padding(.bottom, 20)
@@ -107,7 +147,8 @@ struct WorkoutSessionView: View {
         // Start a timer to update the session duration continuously
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
             currentSessionDuration += 1
-            userData.currentSession?.duration = currentSessionDuration
+            sessionManager.currentSession?.duration = currentSessionDuration
+            sessionManager.saveCurrentSession()
         }
     }
     
@@ -118,8 +159,9 @@ struct WorkoutSessionView: View {
     }
     
     private func startNewSession() {
-        userData.currentSession = WorkoutSession(sessionName: "New Session", workouts: [])
+        sessionManager.startNewSession()
         isSessionStarted = true
+        currentSessionDuration = 0
         startTimer()
     }
 }
