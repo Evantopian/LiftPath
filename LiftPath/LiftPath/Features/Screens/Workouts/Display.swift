@@ -9,6 +9,7 @@ import SwiftUI
 struct Display: View {
     let bodyPart: String
     @State private var exercises: [Exercise] = []
+    @State private var userData = UserData.shared
 
     var body: some View {
         NavigationView {
@@ -35,23 +36,41 @@ struct Display: View {
             }
             .background(LiftPathTheme.primaryGreen.edgesIgnoringSafeArea(.all))
             .onAppear {
-                if exercises.isEmpty {
-                    fetchExercises()
-                }
+                loadExercises()
             }
+        }
+    }
+
+    func loadExercises() {
+        if let cachedExercises = userData.exerciseCache[bodyPart], !cachedExercises.isEmpty {
+            print("Retrieving exercises for \(bodyPart) from cache.")
+            self.exercises = cachedExercises
+        } else {
+            print("No cached exercises found for \(bodyPart), calling API.")
+            fetchExercises()
         }
     }
 
     func fetchExercises() {
         ExerciseAPIFetcher.fetchExercises(for: bodyPart) { fetchedExercises in
-            self.exercises = fetchedExercises
+            DispatchQueue.main.async {
+                self.exercises = fetchedExercises
+                userData.addExercises(for: bodyPart, exercises: fetchedExercises)
+            }
         }
     }
 }
 
+
 struct ExerciseRow: View {
-    @State private var isFavorited: Bool = false
+    @State private var isFavorited: Bool
     let exercise: Exercise
+
+    init(exercise: Exercise) {
+        self.exercise = exercise
+        // Initialize the favorite state by checking if the exercise is in the favoriteExercises array
+        _isFavorited = State(initialValue: UserData.shared.favoriteExercises.contains(where: { $0.id == exercise.id }))
+    }
 
     var body: some View {
         HStack(alignment: .top, spacing: 16) {
@@ -81,6 +100,7 @@ struct ExerciseRow: View {
 
             Button(action: {
                 isFavorited.toggle()
+                UserData.shared.toggleFavorite(for: exercise) // Update the favorites in UserData
             }) {
                 Image(systemName: isFavorited ? "heart.fill" : "heart")
                     .font(.system(size: 24))

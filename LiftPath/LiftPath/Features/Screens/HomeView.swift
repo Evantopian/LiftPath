@@ -17,15 +17,16 @@ struct HomeView: View {
             ZStack {
                 ScrollView {
                     VStack(spacing: 20) {
+                        // Simply pass the current session directly to ResumeBoxView
                         ResumeBoxView(
                             username: userData.username,
-                            workoutTitle: "Full Body Strength",
-                            progress: 0.75  // dont hard code later
+                            workoutTitle: userData.currentSession?.sessionName,
+                            session: userData.currentSession
                         )
-                        
+
                         // Featured Section
                         WorkoutSectionView(title: "Featured", workouts: viewModel.featuredWorkouts)
-                        
+
                         // Other Workouts Section
                         WorkoutSectionView(title: "Other", workouts: viewModel.otherWorkouts)
                     }
@@ -52,57 +53,6 @@ struct HomeView: View {
                 }
             }
         }
-    }
-
-    
-}
-
-// Supporting Views
-struct ResumeBoxView: View {
-    let username: String
-    let workoutTitle: String
-    let progress: Double
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 15) {
-            HStack {
-                Image(systemName: "dumbbell.fill")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 60, height: 60)
-                    .foregroundColor(.black)
-                    .padding()
-                
-                VStack(alignment: .leading, spacing: 5) {
-                    Text("Continue Training, \(username)?")
-                        .font(.headline)
-                        .bold()
-                    
-                    Text(workoutTitle)
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                }
-                
-                Spacer()
-            }
-            
-            
-            
-            // Progress Bar
-            VStack(alignment: .leading, spacing: 5) {
-                Text("Progress")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                
-                ProgressView(value: progress)
-                    .progressViewStyle(LinearProgressViewStyle(tint: .green))
-            }
-            .padding(.horizontal)
-        }
-        .padding()
-        .background(Color.white)
-        .cornerRadius(15)
-        .shadow(color: .gray.opacity(0.2), radius: 5, x: 0, y: 2)
     }
 }
 

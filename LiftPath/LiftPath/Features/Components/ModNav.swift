@@ -10,7 +10,7 @@ struct BottomNavbar: View {
     @Binding var selectedTab: String
 
     private let tabs = [
-        (icon: "heart.circle.fill", title: "Health", tag: "Health"),
+        (icon: "heart.circle.fill", title: "Favorites", tag: "Favorites"),
         (icon: "dumbbell.fill", title: "Home", tag: "Home"),
         (icon: "chart.bar.fill", title: "Stats", tag: "Stats")
     ]

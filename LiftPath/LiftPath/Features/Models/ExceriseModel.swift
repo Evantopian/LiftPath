@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Exercise: Identifiable {
+struct Exercise: Identifiable, Decodable, Encodable {
     var id: String { name }
     let name: String
     let target: String

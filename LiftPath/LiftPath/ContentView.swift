@@ -13,7 +13,7 @@ struct ContentView: View {
     var body: some View {
         VStack(spacing: 0) {
             switch selectedTab {
-            case "Health":
+            case "Favorites":
                 FavoritesView()
             case "Home":
                 HomeView()
