@@ -24,6 +24,11 @@ class WorkoutSessionManager: ObservableObject {
         loadCurrentSession()
     }
     
+    @objc private func appWillTerminate() {
+        // Pause the session when app is terminated
+        pauseCurrentSession()
+    }
+    
     // Create a new session without starting the timer
     func createSession(sessionName: String? = nil) {
         let name = sessionName ?? "Workout Session \(sessionHistory.count + 1)"
@@ -54,7 +59,7 @@ class WorkoutSessionManager: ObservableObject {
         guard currentSession != nil else { return }
         timer?.invalidate()
         currentSession?.isPaused = true
-        
+        saveCurrentSession()
     }
     
     // Resume the timer

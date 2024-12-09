@@ -67,7 +67,6 @@ class ExerciseAPIFetcher {
                         return nil
                     }
                     
-                    // Cache the fetched data for future use
                     exerciseCache[bodyPartLowercased] = fetchedExercises
                     
                     DispatchQueue.main.async {

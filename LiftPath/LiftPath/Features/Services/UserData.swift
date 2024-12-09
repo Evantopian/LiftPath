@@ -11,6 +11,8 @@ import SwiftUI
 
 class UserData: ObservableObject {
     static let shared = UserData()
+    @ObservedObject var workoutSessionManager = WorkoutSessionManager.shared
+
 
     // UserDefaults keys
     private let usernameKey = "LiftPath_Username"
@@ -147,6 +149,7 @@ class UserData: ObservableObject {
         exerciseCache = [:]  // Clear the exercise cache
         favoriteExercises = []  // Clear favorite exercises
         favoritedSessions = []  // Clear favorited sessions
+        workoutSessionManager.clearAllSessionData()
         UserDefaults.standard.set(true, forKey: "isFirstLaunch")
     }
 }

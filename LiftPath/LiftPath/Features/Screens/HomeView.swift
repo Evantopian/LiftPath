@@ -34,26 +34,9 @@ struct HomeView: View {
                        .padding()
                    }
                    .background(LiftPathTheme.primaryGreen)
-                   .toolbar {
-                       ToolbarItem(placement: .navigationBarLeading) {
-                           Text("LiftPath")
-                               .font(.largeTitle)
-                               .fontWeight(.bold)
-                               .foregroundColor(.white)
-                       }
-                       
-                       ToolbarItem(placement: .navigationBarTrailing) {
-                           HStack {
-                               Image(systemName: "flame.fill")
-                                   .foregroundColor(.orange)
-                               NavigationLink(destination: ProfileView()) {
-                                   Image(systemName: "person.circle.fill")
-                                       .foregroundColor(.white)
-                               }
-                           }
-                       }
-                   }
+                   .liftPathToolbar(textColor: .white, iconColor: .white)
                }
+               .accentColor(LiftPathTheme.primaryGreen)
            }
        }
    }

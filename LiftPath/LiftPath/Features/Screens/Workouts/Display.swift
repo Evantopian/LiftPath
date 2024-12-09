@@ -12,44 +12,53 @@ struct Display: View {
     @State private var userData = UserData.shared
     
     var body: some View {
-        NavigationStack {
-            VStack(spacing: 10) {
-                HStack {
-                    BackButtonView(color: .white)
-                    Spacer()
-                }
-                .padding(.top, 10)
-                
-                // Main Title
-                Text("Exercises for \(bodyPart.capitalized)")
-                    .font(.title)
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .background(LiftPathTheme.primaryGreen)
-                    .multilineTextAlignment(.center)
-                
-                Spacer()
-
-                // ScrollView with exercises
-                ScrollView {
-                    LazyVStack(spacing: 5) {
-                        ForEach(exercises) { exercise in
-                            NavigationLink(destination: DisplayDetails(exercise: exercise)) {
-                                ExerciseRow(exercise: exercise)
-                            }
-                        }
-                    }
-                }
-            }
-            .background(LiftPathTheme.primaryGreen.edgesIgnoringSafeArea(.all))
-            .onAppear {
-                loadExercises()
-            }
-            .navigationBarBackButtonHidden(true)
-        }
-    }
-
+         NavigationStack {
+             VStack(spacing: 0) {
+                 // Modern Header Section
+                 VStack(spacing: 10) {
+                     HStack {
+                         BackButtonView(color: .white)
+                         Spacer()
+                     }
+                     
+                     VStack(spacing: 5) {
+                         Text(bodyPart.capitalized)
+                             .font(.system(size: 32, weight: .bold, design: .rounded))
+                             .foregroundColor(.white)
+                         
+                         Text("Exercises")
+                             .font(.system(size: 18, weight: .medium, design: .rounded))
+                             .foregroundColor(.white.opacity(0.8))
+                     }
+                     .padding()
+                 }
+                 .padding(.top, 10)
+                 .background(
+                     Rectangle()
+                         .fill(LiftPathTheme.primaryGreen)
+                         .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
+                 )
+                 
+                 // ScrollView with exercises
+                 ScrollView {
+                     LazyVStack(spacing: 15) {
+                         ForEach(exercises) { exercise in
+                             NavigationLink(destination: DisplayDetails(exercise: exercise)) {
+                                 ExerciseRow(exercise: exercise)
+                             }
+                         }
+                     }
+                     .padding()
+                 }
+             }
+             .background(Color.white)
+             .onAppear {
+                 loadExercises()
+             }
+             .navigationBarBackButtonHidden(true)
+         }
+     }
+    
     func loadExercises() {
         if let cachedExercises = userData.exerciseCache[bodyPart], !cachedExercises.isEmpty {
             print("Retrieving exercises for \(bodyPart) from cache.")

@@ -7,25 +7,45 @@
 // LiftPath
 //
 // Created by Evan Huang on 12/7/24.
+
 import SwiftUI
 
 struct WorkoutSessionView: View {
     @ObservedObject private var sessionManager = WorkoutSessionManager.shared
     @State private var isSessionPaused: Bool = false
-    @State private var showCompletionAnimation: Bool = false // Track completion state
-    @State private var isEditingSessionName: Bool = false  // To track if session name is being edited
-    @State private var newSessionName: String = ""  // To store the new session name
-    @FocusState private var sessionNameFocused: Bool  // To track if the session name field is focused
-    @State private var showOverlayMessage = false // State to show/hide the overlay message
+    @State private var showCompletionAnimation: Bool = false
+    @State private var isEditingSessionName: Bool = false
+    @State private var newSessionName: String = ""
+    @FocusState private var sessionNameFocused: Bool
+    @State private var showOverlayMessage = false
 
-    
-    var session: WorkoutSession?  // This will hold the session passed from the NavigationLink
+    var session: WorkoutSession?
     
     var body: some View {
-        VStack {
-            if showCompletionAnimation {
-                CompletionView(sessionManager: sessionManager)
-            } else {
+        NavigationStack {
+            HStack {
+                BackButtonView(color: LiftPathTheme.primaryGreen)
+                Spacer()
+            }
+            .padding(.top, 10) // Moved chevron slightly higher
+            ZStack {
+                LiftPathTheme.primaryGreen.opacity(0.1)
+                    .edgesIgnoringSafeArea(.all)
+                
+                if showCompletionAnimation {
+                    CompletionView(sessionManager: sessionManager)
+                } else {
+                    mainSessionContent
+                }
+            }
+        }
+        .accentColor(LiftPathTheme.primaryGreen)
+        .navigationBarBackButtonHidden(true)
+    }
+    
+    private var mainSessionContent: some View {
+        ScrollView {
+            VStack(spacing: 20) {
                 if let currentSession = session ?? sessionManager.currentSession {
                     if currentSession.workouts.count >= 1 {
                         sessionDetailsView(for: currentSession)
@@ -36,227 +56,229 @@ struct WorkoutSessionView: View {
                     noSessionView()
                 }
             }
-        }
-
-        .padding()
-        .onAppear {
-            if let existingSession = sessionManager.currentSession {
-                isSessionPaused = existingSession.isPaused
-                newSessionName = existingSession.sessionName // Initialize the new session name
-            }
+            .padding()
         }
     }
     
-    // MARK: - Helper Views
-    
     private func sessionDetailsView(for session: WorkoutSession) -> some View {
         VStack(spacing: 20) {
-            HStack{
-                BackButtonView(color: LiftPathTheme.primaryGreen)
-                Spacer()
-
-            }
-            .padding(.top, 10)
-            HStack {
-                if isEditingSessionName {
-                    TextField("Session Name", text: $newSessionName, onCommit: {
-                        saveSessionName()
-                    })
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .focused($sessionNameFocused) // Bind the focus state to manage focus
-                    .onChange(of: sessionNameFocused) { _, isFocused in
-                        if !isFocused {
-                            saveSessionName()  // Save when focus is lost
-                        }
-                    }
-                    .padding()
-                } else {
-                    Text(session.sessionName)
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
-                        .padding()
-                }
-                
-                Button(action: {
-                    isEditingSessionName.toggle()
-                    if !isEditingSessionName {
-                        saveSessionName() // Save when switching off editing mode
-                    }
-                }) {
-                    Image(systemName: "pencil.circle.fill")
-                        .foregroundColor(.blue)
-                        .font(.title)
-                }
-            }
+            sessionNameSection(for: session)
             
-            VStack(alignment: .leading, spacing: 10) {
-                Text("Session Duration: \(sessionManager.formattedDuration(session.duration))")
+            VStack(alignment: .leading, spacing: 15) {
+                sessionInfoCard(for: session)
+                exerciseListCard(for: session)
                 
-                Divider()
-                
-                // Display workouts in the session
-                Text("Exercises")
-                    .font(.title2)
-                    .fontWeight(.semibold)
-                
-                ForEach(session.workouts) { workout in
-                    HStack {
-                        Text("• \(workout.name)")
-                        Spacer()
-                        Button(action: {
-                            sessionManager.removeExerciseFromCurrentSession(workout)
-                        }) {
-                            Image(systemName: "minus.circle.fill")
-                                .foregroundColor(.red)
-                        }
+                VStack(spacing: 15) {
+                    if session.isStarted {
+                        completeSessionButton(session: session)
+                        pauseContinueButton(session: session)
+                    } else {
+                        startSessionButton()
                     }
-                    .padding(.vertical, 5)
-                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                
-                Spacer()
-                
-                // Complete Session Button
-                if session.isStarted {
-                    Button(action: {
-                        completeSession()
-                    }) {
-                        Text("Complete Session")
-                            .font(.headline)
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(Color.green)
-                            .foregroundColor(.white)
-                            .cornerRadius(10)
-                    }
-                    .padding(.top)
-                }
-                
-                // Pause/Continue Button
-                if session.isStarted && !session.isCompleted {
-                    Button(action: {
-                        if session.isPaused {
-                            resumeSession()
-                        } else {
-                            pauseSession()
-                        }
-                    }) {
-                        Text(session.isPaused ? "Continue Session" : "Pause Session")
-                            .font(.headline)
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(session.isPaused ? Color.blue : Color.orange)
-                            .foregroundColor(.white)
-                            .cornerRadius(10)
-                    }
-                    .padding(.top)
-                } else {
-                    Button(action: {
-                        startSession()
-                    }) {
-                        Text("Start Session")
-                            .font(.headline)
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(Color.blue)
-                            .foregroundColor(.white)
-                            .cornerRadius(10)
-                    }
-                    .padding(.top)
-                }
+                .padding(.top)
             }
             .padding()
+            .background(Color.white)
+            .cornerRadius(15)
+            .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 2)
         }
         .navigationBarBackButtonHidden(true)
     }
     
-    
-    private func noSessionView() -> some View {
-        return ZStack {
-            VStack {
-                Text(sessionManager.sessionHistory.isEmpty ? "No Active Session" : "Start Another Session")
-                    .font(.title2)
-                    .fontWeight(.semibold)
-                    .padding(.bottom, 10)
-                
-                Text(sessionManager.sessionHistory.isEmpty
-                     ? "Start a new session to track your progress."
-                     : "You have completed previous workout sessions.")
-                    .font(.body)
-                    .foregroundColor(.secondary)
-                    .padding(.bottom, 20)
-                
-                NavigationLink(destination: HomeView()) {
-                    Button(action: {
-                        showOverlayMessage = true
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
-                            showOverlayMessage = false // Hide overlay after 2.5 seconds
-                        }
-                    }) {
-                        HStack {
-                            Text("Start New Session")
-                            Image(systemName: "plus.circle.fill")
-                        }
-                        .font(.headline)
-                        .padding()
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
+    private func sessionNameSection(for session: WorkoutSession) -> some View {
+        HStack {
+            if isEditingSessionName {
+                TextField("Session Name", text: $newSessionName, onCommit: saveSessionName)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .focused($sessionNameFocused)
+                    .onChange(of: sessionNameFocused) { _, isFocused in
+                        if !isFocused { saveSessionName() }
                     }
-                }
-                .padding()
+            } else {
+                Text(session.sessionName)
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .foregroundColor(LiftPathTheme.primaryGreen)
             }
             
-            // Overlay message
-            if showOverlayMessage {
-                VStack {
-                    Text("Please select some workouts.")
-                        .font(.body)
-                        .padding()
-                        .background(Color.gray.opacity(0.8))
-                        .foregroundColor(.white)
-                        .cornerRadius(12)
+            Button(action: toggleSessionNameEditing) {
+                Image(systemName: "pencil.circle.fill")
+                    .foregroundColor(LiftPathTheme.primaryGreen)
+                    .font(.title2)
+            }
+            .buttonStyle(PlainButtonStyle())
+        }
+        .padding(.horizontal)
+    }
+    
+    private func sessionInfoCard(for session: WorkoutSession) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            DetailRow(
+                icon: "clock",
+                title: "Session Duration",
+                value: sessionManager.formattedDuration(session.duration),
+                color: .blue
+            )
+        }
+    }
+    
+    private func exerciseListCard(for session: WorkoutSession) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Exercises")
+                .font(.system(size: 20, weight: .bold, design: .rounded))
+                .foregroundColor(LiftPathTheme.primaryGreen)
+            
+            ForEach(session.workouts) { workout in
+                HStack {
+                    Text("• \(workout.name)")
+                        .font(.system(size: 16, design: .rounded))
+                    
+                    Spacer()
+                    
+                    Button(action: { sessionManager.removeExerciseFromCurrentSession(workout) }) {
+                        Image(systemName: "minus.circle.fill")
+                            .foregroundColor(.red)
+                    }
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(Color.black.opacity(0.3)) // Optional dim background
-                .transition(.opacity) // Smooth fade-in/out animation
+                .padding(.vertical, 5)
             }
         }
-        .animation(.easeInOut, value: showOverlayMessage) // Animate overlay appearance/disappearance
     }
-
-
-    // MARK: - Helper Functions
+    
+    private func completeSessionButton(session: WorkoutSession) -> some View {
+        Button(action: completeSession) {
+            Text("Complete Session")
+                .font(.headline)
+                .padding()
+                .frame(maxWidth: .infinity)
+                .background(Color.green)
+                .foregroundColor(.white)
+                .cornerRadius(10)
+        }
+    }
+    
+    private func pauseContinueButton(session: WorkoutSession) -> some View {
+        Button(action: toggleSessionPause) {
+            Text(session.isPaused ? "Continue Session" : "Pause Session")
+                .font(.headline)
+                .padding()
+                .frame(maxWidth: .infinity)
+                .background(session.isPaused ? Color.blue : Color.orange)
+                .foregroundColor(.white)
+                .cornerRadius(10)
+        }
+    }
+    
+    private func startSessionButton() -> some View {
+        Button(action: startSession) {
+            Text("Start Session")
+                .font(.headline)
+                .padding()
+                .frame(maxWidth: .infinity)
+                .background(LiftPathTheme.primaryGreen)
+                .foregroundColor(.white)
+                .cornerRadius(10)
+        }
+    }
+    
+    private func noSessionView() -> some View {
+        VStack(spacing: 20) {
+            Image(systemName: "figure.strengthtraining.traditional")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 100, height: 100)
+                .foregroundColor(LiftPathTheme.primaryGreen.opacity(0.5))
+            
+            Text(sessionManager.sessionHistory.isEmpty ? "No Active Session" : "Start Another Session")
+                .font(.system(size: 22, weight: .bold, design: .rounded))
+                .foregroundColor(LiftPathTheme.primaryGreen)
+            
+            Text(sessionManager.sessionHistory.isEmpty
+                 ? "Start a new session to track your progress."
+                 : "You have completed previous workout sessions.")
+                .font(.system(size: 16, design: .rounded))
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+            
+            NavigationLink(destination: HomeView()) {
+                Button(action: showPleaseSelectMessage) {
+                    HStack {
+                        Text("Start New Session")
+                        Image(systemName: "plus.circle.fill")
+                    }
+                    .font(.headline)
+                    .padding()
+                    .background(LiftPathTheme.primaryGreen)
+                    .foregroundColor(.white)
+                    .cornerRadius(10)
+                }
+            }
+        }
+        .padding()
+        .background(Color.white.opacity(0.7))
+        .cornerRadius(15)
+        .overlay(
+            Group {
+                if showOverlayMessage {
+                    Text("Please select some workouts")
+                        .font(.caption)
+                        .padding()
+                        .background(Color.black.opacity(0.7))
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                }
+            }
+        )
+    }
+    
+    // MARK: - Action Methods
+    private func toggleSessionNameEditing() {
+        isEditingSessionName.toggle()
+        if !isEditingSessionName {
+            saveSessionName()
+        }
+    }
+    
+    private func saveSessionName() {
+        sessionManager.changeSessionName(newName: newSessionName)
+        isEditingSessionName = false
+    }
+    
+    private func showPleaseSelectMessage() {
+        showOverlayMessage = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+            showOverlayMessage = false
+        }
+    }
     
     private func startSession() {
-        sessionManager.startSession()  // Start the timer only
+        sessionManager.startSession()
+    }
+    
+    private func toggleSessionPause() {
+        guard let session = sessionManager.currentSession else { return }
+        if session.isPaused {
+            resumeSession()
+        } else {
+            pauseSession()
+        }
     }
     
     private func pauseSession() {
         isSessionPaused = true
         sessionManager.pauseCurrentSession()
     }
-    
+
     private func resumeSession() {
         isSessionPaused = false
         sessionManager.resumeCurrentSession()
     }
-    
+
     private func completeSession() {
         withAnimation(.easeInOut(duration: 1)) {
             showCompletionAnimation = true
         }
         isSessionPaused = true
         sessionManager.pauseCurrentSession()
-    }
-
-    private func startNewSession() {
-        sessionManager.createSession()
-    }
-    
-    // Method to save the new session name
-    private func saveSessionName() {
-        sessionManager.changeSessionName(newName: newSessionName)
-        isEditingSessionName = false
     }
 }
