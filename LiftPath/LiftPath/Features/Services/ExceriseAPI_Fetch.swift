@@ -58,8 +58,11 @@ class ExerciseAPIFetcher {
                     let fetchedExercises = json.compactMap { dict in
                         if let name = dict["name"] as? String,
                            let target = dict["target"] as? String,
-                           let gifUrl = dict["gifUrl"] as? String {
-                            return Exercise(name: name, target: target, gifUrl: gifUrl)
+                           let gifUrl = dict["gifUrl"] as? String,
+                           let equipment = dict["equipment"] as? String,
+                           let instructions = dict["instructions"] as? [String],
+                           let secondaryMuscles = dict["secondaryMuscles"] as? [String] {
+                            return Exercise(name: name, target: target, gifUrl: gifUrl, equipment: equipment, instructions: instructions, secondaryMuscles: secondaryMuscles)
                         }
                         return nil
                     }

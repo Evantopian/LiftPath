@@ -73,14 +73,15 @@ class WorkoutSessionManager: ObservableObject {
             saveHistoryToUserDefaults()
         }
         currentSession = nil
+        UserDefaults.standard.removeObject(forKey: currentSessionKey) 
         saveCurrentSession()
     }
+
     
     // Cancel the session
     func cancelCurrentSession() {
         timer?.invalidate()
         currentSession = nil
-        saveCurrentSession()
     }
     
     // Persistence methods
@@ -94,6 +95,7 @@ class WorkoutSessionManager: ObservableObject {
     }
     
     private func loadHistoryFromUserDefaults() {
+        //clearAllSessionData()
         guard let data = UserDefaults.standard.data(forKey: historyKey) else { return }
         do {
             sessionHistory = try JSONDecoder().decode([WorkoutSession].self, from: data)
@@ -113,12 +115,6 @@ class WorkoutSessionManager: ObservableObject {
     }
     
     func loadCurrentSession() {
-        let clear = true; // for data clear testing
-        if clear {
-            clearAllSessionData()
-            print("Cleared All Session Data.")
-        }
-        
         // Check if the current session data exists in UserDefaults
         guard let data = UserDefaults.standard.data(forKey: currentSessionKey) else {
             print("No session history found.")
@@ -131,6 +127,13 @@ class WorkoutSessionManager: ObservableObject {
         } catch {
             print("Failed to load current session: \(error)")
         }
+    }
+    
+    func changeSessionName(newName: String) {
+        guard var session = currentSession else { return }
+        session.sessionName = newName
+        currentSession = session
+        saveCurrentSession()
     }
     
     func addExerciseToCurrentSession(_ exercise: Exercise) {

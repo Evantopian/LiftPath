@@ -7,13 +7,17 @@
 // LiftPath
 //
 // Created by Evan Huang on 12/7/24.
-
 import SwiftUI
 
 struct WorkoutSessionView: View {
     @ObservedObject private var sessionManager = WorkoutSessionManager.shared
     @State private var isSessionPaused: Bool = false
     @State private var showCompletionAnimation: Bool = false // Track completion state
+    @State private var isEditingSessionName: Bool = false  // To track if session name is being edited
+    @State private var newSessionName: String = ""  // To store the new session name
+    @FocusState private var sessionNameFocused: Bool  // To track if the session name field is focused
+    @State private var showOverlayMessage = false // State to show/hide the overlay message
+
     
     var session: WorkoutSession?  // This will hold the session passed from the NavigationLink
     
@@ -23,17 +27,22 @@ struct WorkoutSessionView: View {
                 CompletionView(sessionManager: sessionManager)
             } else {
                 if let currentSession = session ?? sessionManager.currentSession {
-                    sessionDetailsView(for: currentSession)
+                    if currentSession.workouts.count >= 1 {
+                        sessionDetailsView(for: currentSession)
+                    } else {
+                        noSessionView()
+                    }
                 } else {
                     noSessionView()
                 }
             }
         }
-        .navigationBarTitle("Workout Session", displayMode: .inline)
+
         .padding()
         .onAppear {
             if let existingSession = sessionManager.currentSession {
                 isSessionPaused = existingSession.isPaused
+                newSessionName = existingSession.sessionName // Initialize the new session name
             }
         }
     }
@@ -42,10 +51,43 @@ struct WorkoutSessionView: View {
     
     private func sessionDetailsView(for session: WorkoutSession) -> some View {
         VStack(spacing: 20) {
-            Text(session.sessionName)
-                .font(.largeTitle)
-                .fontWeight(.bold)
-                .padding()
+            HStack{
+                BackButtonView(color: LiftPathTheme.primaryGreen)
+                Spacer()
+
+            }
+            .padding(.top, 10)
+            HStack {
+                if isEditingSessionName {
+                    TextField("Session Name", text: $newSessionName, onCommit: {
+                        saveSessionName()
+                    })
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .focused($sessionNameFocused) // Bind the focus state to manage focus
+                    .onChange(of: sessionNameFocused) { _, isFocused in
+                        if !isFocused {
+                            saveSessionName()  // Save when focus is lost
+                        }
+                    }
+                    .padding()
+                } else {
+                    Text(session.sessionName)
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
+                        .padding()
+                }
+                
+                Button(action: {
+                    isEditingSessionName.toggle()
+                    if !isEditingSessionName {
+                        saveSessionName() // Save when switching off editing mode
+                    }
+                }) {
+                    Image(systemName: "pencil.circle.fill")
+                        .foregroundColor(.blue)
+                        .font(.title)
+                }
+            }
             
             VStack(alignment: .leading, spacing: 10) {
                 Text("Session Duration: \(sessionManager.formattedDuration(session.duration))")
@@ -53,7 +95,7 @@ struct WorkoutSessionView: View {
                 Divider()
                 
                 // Display workouts in the session
-                Text("Workouts")
+                Text("Exercises")
                     .font(.title2)
                     .fontWeight(.semibold)
                 
@@ -125,38 +167,64 @@ struct WorkoutSessionView: View {
             }
             .padding()
         }
+        .navigationBarBackButtonHidden(true)
     }
     
+    
     private func noSessionView() -> some View {
-        VStack {
-            Text(sessionManager.sessionHistory.isEmpty ? "No Active Session" : "Start Another Session")
-                .font(.title2)
-                .fontWeight(.semibold)
-                .padding(.bottom, 10)
-            
-            Text(sessionManager.sessionHistory.isEmpty
-                 ? "Start a new session to track your progress."
-                 : "You have completed previous workout sessions.")
-                .font(.body)
-                .foregroundColor(.secondary)
-                .padding(.bottom, 20)
-            
-            Button(action: {
-                startNewSession()
-            }) {
-                HStack {
-                    Text("Start New Session")
-                    Image(systemName: "plus.circle.fill")
+        return ZStack {
+            VStack {
+                Text(sessionManager.sessionHistory.isEmpty ? "No Active Session" : "Start Another Session")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                    .padding(.bottom, 10)
+                
+                Text(sessionManager.sessionHistory.isEmpty
+                     ? "Start a new session to track your progress."
+                     : "You have completed previous workout sessions.")
+                    .font(.body)
+                    .foregroundColor(.secondary)
+                    .padding(.bottom, 20)
+                
+                NavigationLink(destination: HomeView()) {
+                    Button(action: {
+                        showOverlayMessage = true
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+                            showOverlayMessage = false // Hide overlay after 2.5 seconds
+                        }
+                    }) {
+                        HStack {
+                            Text("Start New Session")
+                            Image(systemName: "plus.circle.fill")
+                        }
+                        .font(.headline)
+                        .padding()
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                    }
                 }
-                .font(.headline)
                 .padding()
-                .background(Color.blue)
-                .foregroundColor(.white)
-                .cornerRadius(10)
+            }
+            
+            // Overlay message
+            if showOverlayMessage {
+                VStack {
+                    Text("Please select some workouts.")
+                        .font(.body)
+                        .padding()
+                        .background(Color.gray.opacity(0.8))
+                        .foregroundColor(.white)
+                        .cornerRadius(12)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(Color.black.opacity(0.3)) // Optional dim background
+                .transition(.opacity) // Smooth fade-in/out animation
             }
         }
-        .padding()
+        .animation(.easeInOut, value: showOverlayMessage) // Animate overlay appearance/disappearance
     }
+
 
     // MARK: - Helper Functions
     
@@ -184,5 +252,11 @@ struct WorkoutSessionView: View {
 
     private func startNewSession() {
         sessionManager.createSession()
+    }
+    
+    // Method to save the new session name
+    private func saveSessionName() {
+        sessionManager.changeSessionName(newName: newSessionName)
+        isEditingSessionName = false
     }
 }

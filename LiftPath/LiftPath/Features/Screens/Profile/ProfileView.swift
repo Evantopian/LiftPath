@@ -11,11 +11,16 @@ struct ProfileView: View {
     @StateObject private var viewModel = ProfileViewModel()
     @StateObject private var userData = UserData.shared
     @State private var showingConfirmation = false
-    @Environment(\.presentationMode) var presentationMode
     
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
+                HStack{
+                    BackButtonView(color: .white)
+                    Spacer()
+
+                }
+                .padding(.top, 10)
                 // Profile Card
                 ProfileCardView(
                     username: userData.username,
@@ -46,15 +51,13 @@ struct ProfileView: View {
                         // Reset to first launch
                         UserDefaults.standard.set(true, forKey: "isFirstLaunch")
                         // Dismiss current view and go back to initial setup
-                        presentationMode.wrappedValue.dismiss()
                     }
                 }
             }
             .padding()
         }
         .background(LiftPathTheme.primaryGreen)
-        .navigationTitle("Profile")
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(true)
     }
 }
 

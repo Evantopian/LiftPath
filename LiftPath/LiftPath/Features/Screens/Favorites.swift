@@ -11,6 +11,7 @@ struct FavoritesView: View {
     @State private var selectedTab: String = "heart.circle.fill"
     @State private var favorites: [Exercise] = [] // This will store the list of favorite exercises
     
+    
     var body: some View {
         NavigationStack {
             ZStack {

@@ -41,6 +41,7 @@ struct HomeView: View {
                                .fontWeight(.bold)
                                .foregroundColor(.white)
                        }
+                       
                        ToolbarItem(placement: .navigationBarTrailing) {
                            HStack {
                                Image(systemName: "flame.fill")

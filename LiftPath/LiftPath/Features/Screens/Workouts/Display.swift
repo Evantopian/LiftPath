@@ -10,11 +10,17 @@ struct Display: View {
     let bodyPart: String
     @State private var exercises: [Exercise] = []
     @State private var userData = UserData.shared
-
+    
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 10) {
-                Spacer()
+                HStack {
+                    BackButtonView(color: .white)
+                    Spacer()
+                }
+                .padding(.top, 10)
+                
+                // Main Title
                 Text("Exercises for \(bodyPart.capitalized)")
                     .font(.title)
                     .fontWeight(.bold)
@@ -22,8 +28,10 @@ struct Display: View {
                     .frame(maxWidth: .infinity)
                     .background(LiftPathTheme.primaryGreen)
                     .multilineTextAlignment(.center)
+                
                 Spacer()
 
+                // ScrollView with exercises
                 ScrollView {
                     LazyVStack(spacing: 5) {
                         ForEach(exercises) { exercise in
@@ -38,6 +46,7 @@ struct Display: View {
             .onAppear {
                 loadExercises()
             }
+            .navigationBarBackButtonHidden(true)
         }
     }
 
@@ -60,4 +69,3 @@ struct Display: View {
         }
     }
 }
-

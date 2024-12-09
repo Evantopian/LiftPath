@@ -4,11 +4,12 @@
 //
 //  Created by Evan Huang on 12/2/24.
 //
+// Storage System for Default User Data and Singular Favorties
+// Done due to non-modularity prior to coding.
 import Foundation
 import SwiftUI
 
 class UserData: ObservableObject {
-    // Singleton instance for app-wide access
     static let shared = UserData()
 
     // UserDefaults keys
@@ -17,7 +18,7 @@ class UserData: ObservableObject {
     private let startDateKey = "LiftPath_StartDate"
     private let exerciseCacheKey = "LiftPath_ExerciseCache"
     private let favoriteExercisesKey = "LiftPath_FavoriteExercises"
-    private let currentSessionKey = "LiftPath_CurrentSession"
+    private let favoritedSessionsKey = "LiftPath_FavoritedSessions" 
     
     // Published properties
     @Published var username: String {
@@ -57,51 +58,51 @@ class UserData: ObservableObject {
             }
         }
     }
-    
-    // Current workout session
-    @Published var currentSession: WorkoutSession? {
+
+    // New property for favorited sessions
+    @Published var favoritedSessions: [UUID] {
         didSet {
-            // Store the current session in UserDefaults as encoded data
-            if let session = currentSession, let encoded = try? JSONEncoder().encode(session) {
-                UserDefaults.standard.set(encoded, forKey: currentSessionKey)
+            // Store favorited sessions in UserDefaults
+            if let encoded = try? JSONEncoder().encode(favoritedSessions) {
+                UserDefaults.standard.set(encoded, forKey: favoritedSessionsKey)
             }
         }
     }
-    
+
     // Private initializer to enforce singleton pattern
-     private init() {
-         // Load persisted data for user data
-         username = UserDefaults.standard.string(forKey: usernameKey) ?? ""
-         age = UserDefaults.standard.integer(forKey: ageKey)
-         
-         // If no start date is saved, use current date
-         startDate = UserDefaults.standard.object(forKey: startDateKey) as? Date ?? Date()
+    private init() {
+        // Load persisted data for user data
+        username = UserDefaults.standard.string(forKey: usernameKey) ?? ""
+        age = UserDefaults.standard.integer(forKey: ageKey)
+        
+        // If no start date is saved, use current date
+        startDate = UserDefaults.standard.object(forKey: startDateKey) as? Date ?? Date()
 
-         // Load persisted exercise cache
-         if let savedCacheData = UserDefaults.standard.data(forKey: exerciseCacheKey),
-            let decodedCache = try? JSONDecoder().decode([String: [Exercise]].self, from: savedCacheData) {
-             exerciseCache = decodedCache
-         } else {
-             exerciseCache = [:]  // Initialize an empty cache if none exists
-         }
+        // Load persisted exercise cache
+        if let savedCacheData = UserDefaults.standard.data(forKey: exerciseCacheKey),
+           let decodedCache = try? JSONDecoder().decode([String: [Exercise]].self, from: savedCacheData) {
+            exerciseCache = decodedCache
+        } else {
+            exerciseCache = [:]  // Initialize an empty cache if none exists
+        }
 
-         // Load persisted favorite exercises
-         if let savedFavoritesData = UserDefaults.standard.data(forKey: favoriteExercisesKey),
-            let decodedFavorites = try? JSONDecoder().decode([Exercise].self, from: savedFavoritesData) {
-             favoriteExercises = decodedFavorites
-         } else {
-             favoriteExercises = [] // Initialize an empty array if no favorites exist
-         }
+        // Load persisted favorite exercises
+        if let savedFavoritesData = UserDefaults.standard.data(forKey: favoriteExercisesKey),
+           let decodedFavorites = try? JSONDecoder().decode([Exercise].self, from: savedFavoritesData) {
+            favoriteExercises = decodedFavorites
+        } else {
+            favoriteExercises = []  // Initialize an empty array if no favorites exist
+        }
 
-         // Load persisted current session
-         if let savedSessionData = UserDefaults.standard.data(forKey: currentSessionKey),
-            let decodedSession = try? JSONDecoder().decode(WorkoutSession.self, from: savedSessionData) {
-             currentSession = decodedSession
-         } else {
-             currentSession = nil  // No session available at startup
-         }
-     }
-    
+        // Load persisted favorited sessions
+        if let savedSessionsData = UserDefaults.standard.data(forKey: favoritedSessionsKey),
+           let decodedSessions = try? JSONDecoder().decode([UUID].self, from: savedSessionsData) {
+            favoritedSessions = decodedSessions
+        } else {
+            favoritedSessions = []  // Initialize an empty array if no sessions exist
+        }
+    }
+
     // Function to add exercises for a specific body part to the cache
     func addExercises(for bodyPart: String, exercises: [Exercise]) {
         exerciseCache[bodyPart] = exercises
@@ -116,6 +117,15 @@ class UserData: ObservableObject {
         }
     }
 
+    // New function to toggle session as favorite
+    func toggleFavorite(for sessionId: UUID) {
+        if let index = favoritedSessions.firstIndex(where: { $0 == sessionId }) {
+            favoritedSessions.remove(at: index)
+        } else {
+            favoritedSessions.append(sessionId)
+        }
+    }
+
     // Function to get formatted start date
     func getFormattedStartDate() -> String {
         let formatter = DateFormatter()
@@ -126,7 +136,7 @@ class UserData: ObservableObject {
     // Clear all user data including the exercise cache
     func clearAllUserData() {
         let defaults = UserDefaults.standard
-        let keys = [usernameKey, ageKey, startDateKey, exerciseCacheKey, favoriteExercisesKey, currentSessionKey]
+        let keys = [usernameKey, ageKey, startDateKey, exerciseCacheKey, favoriteExercisesKey, favoritedSessionsKey]
         
         keys.forEach { defaults.removeObject(forKey: $0) }
         
@@ -136,7 +146,7 @@ class UserData: ObservableObject {
         startDate = Date()
         exerciseCache = [:]  // Clear the exercise cache
         favoriteExercises = []  // Clear favorite exercises
-        currentSession = nil // Clear the current workout session
+        favoritedSessions = []  // Clear favorited sessions
         UserDefaults.standard.set(true, forKey: "isFirstLaunch")
     }
 }

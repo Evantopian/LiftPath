@@ -12,4 +12,10 @@ struct Exercise: Identifiable, Decodable, Encodable {
     let name: String
     let target: String
     let gifUrl: String
+    let equipment: String
+    let instructions: [String]
+    let secondaryMuscles: [String]
+    var sets: Int?
+    var reps: Int?
+    var duration: Double? // for cardio potentially (next expansion)
 }

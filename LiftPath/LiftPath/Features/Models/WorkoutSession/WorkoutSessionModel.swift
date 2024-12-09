@@ -17,15 +17,17 @@ struct WorkoutSession: Codable, Identifiable {
     var isCompleted: Bool // Whether the session is completed
     var isPaused: Bool  // Whether the session is paused
     var isStarted: Bool  // Whether the session has started
+    var isFavorited: Bool
     
     // Initialize with default values
-    init(sessionName: String, workouts: [Exercise] = [], duration: TimeInterval = 0, isCompleted: Bool = false, isPaused: Bool = false, isStarted: Bool = false) {
+    init(sessionName: String, workouts: [Exercise] = [], duration: TimeInterval = 0, isCompleted: Bool = false, isPaused: Bool = false, isStarted: Bool = false, isFavorited: Bool = false) {
         self.sessionName = sessionName
         self.workouts = workouts
         self.duration = duration
         self.isCompleted = isCompleted
         self.isPaused = isPaused
         self.isStarted = isStarted
+        self.isFavorited = isFavorited
     }
     
     // Method to add a workout
@@ -72,5 +74,9 @@ struct WorkoutSession: Codable, Identifiable {
         isCompleted = false
         isPaused = false
         isStarted = false
+    }
+    
+    mutating func toggleFavorite() {
+        isFavorited.toggle()
     }
 }
