@@ -1,38 +1,43 @@
 # LiftPath
-Last Updated: 11/08/2024
+
+*Last Updated: 11/08/2024*
 
 ## Overview
+
 LiftPath is an iOS app designed for fitness enthusiasts to manage their workouts and track progress. This project is part of my iOS development coursework at Hunter College.
 
 ## Directory Structure
+
+```
 LiftPath/
 ├── App/
-│   └── LiftPathApp.swift
+│   └── LiftPathApp.swift          // Main app entry point
 │
 ├── Features/
 │   ├── Home/
 │   │   ├── HomeView.swift         // Main dashboard view
-│   │   └── HomeViewModel.swift    // Manages home view state & logic
+│   │   └── HomeViewModel.swift    // Manages home view state and logic
 │   │
 │   ├── Workouts/
-│   │   ├── WorkoutListView.swift  // List of workouts/exercises
-│   │   └── WorkoutViewModel.swift // Handles workout data & API calls
+│   │   ├── WorkoutListView.swift  // Lists available workouts and exercises
+│   │   └── WorkoutViewModel.swift // Handles workout data and API calls
 │   │
 │   └── Profile/
-│       ├── ProfileView.swift      // User profile & stats
-│       └── ProfileViewModel.swift // Manages profile data
+│       ├── ProfileView.swift      // Displays user profile and stats
+│       └── ProfileViewModel.swift // Manages user profile data
 │
 ├── Models/
-│   ├── Exercise.swift    // Exercise data model
-│   ├── Workout.swift     // Workout data model
-│   └── Profile.swift     // User profile model
+│   ├── Exercise.swift             // Exercise data model
+│   ├── Workout.swift              // Workout data model
+│   └── Profile.swift              // User profile data model
 │
 ├── Services/
-│   └── ExerciseService.swift  // API integrationw
+│   └── ExerciseService.swift      // API integration for exercises
 │
 └── Components/
-    └── ProgressBar.swift      // Reusable progress bar component
-    └── Heatmap.swift          // User activity tracking component
+    ├── ProgressBar.swift          // Reusable progress bar component
+    └── Heatmap.swift              // User activity tracking component
+```
 
-# Tech Stack:
-Project Guidelines (TBA When Finished.)
+## Tech Stack
+- Swift
