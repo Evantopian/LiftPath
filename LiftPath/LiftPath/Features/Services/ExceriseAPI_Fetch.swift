@@ -22,7 +22,7 @@ class ExerciseAPIFetcher {
         }
 
         let headers = [
-            "x-rapidapi-key": "ea4d4860d6msh63f88da1c3726a6p12db0bjsn52c1d017b0b6",
+            "x-rapidapi-key": [Redacted],
             "x-rapidapi-host": "exercisedb.p.rapidapi.com"
         ]
         
